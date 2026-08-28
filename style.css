@@ -99,6 +99,11 @@ body {
   background: #dce8ec;
 }
 
+.hud-gems .hud-value {
+  color: #8854d0;
+  font-size: 1rem;
+}
+
 #game-wrap {
   position: relative;
   width: 100%;
@@ -279,11 +284,202 @@ canvas {
   font-weight: 600;
 }
 
+.gem-reward {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #8854d0;
+  min-height: 1.2em;
+}
+
+.gem-display {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #8854d0;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 8px 16px;
+  margin: 4px 0;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 340px;
+  margin: 8px auto;
+}
+
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s, border-color 0.1s;
+}
+
+.shop-item:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.shop-item.owned {
+  border-color: #8854d0;
+  background: rgba(136, 84, 208, 0.2);
+  opacity: 0.7;
+  cursor: default;
+}
+
+.shop-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shop-emoji {
+  font-size: 1.6rem;
+}
+
+.shop-name {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.shop-cost {
+  font-size: 0.75rem;
+  color: #ffe66d;
+  font-weight: 700;
+}
+
+.shop-desc {
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
+.shop-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 10px 16px;
+}
+
+.btn-ad {
+  background: linear-gradient(180deg, #4ecdc4 0%, #2ab7a9 100%);
+  box-shadow: 0 6px 0 #1a8a7c, 0 10px 18px rgba(0, 0, 0, 0.25);
+}
+
+.btn-vip {
+  background: linear-gradient(180deg, #ffe66d 0%, #feca57 100%);
+  color: #1d3557;
+  box-shadow: 0 6px 0 #b8860b, 0 10px 18px rgba(0, 0, 0, 0.25);
+}
+
+.ad-countdown {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffe66d;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.vip-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  text-align: left;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.vip-perk {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+
+.vip-price {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ffe66d;
+  margin: 8px 0;
+}
+
+.vip-pay-placeholder {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin: 4px 0 12px;
+  text-align: center;
+}
+
+.vip-demo-msg {
+  font-size: 0.72rem;
+  color: #8854d0;
+  font-weight: 700;
+  margin-top: 8px;
+  min-height: 1.2em;
+}
+
+.ta-stats {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.ta-stat {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 8px 16px;
+}
+
+#ta-timer {
+  color: #ff6b6b;
+}
+
+#ta-caught {
+  color: #4ecdc4;
+}
+
+#ta-gems {
+  color: #ffe66d;
+}
+
 @media (max-width: 360px) {
   .overlay h1 {
     font-size: 1.5rem;
   }
   .rules {
     font-size: 0.78rem;
+  }
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+  .shop-item {
+    flex-direction: row;
+    text-align: left;
+    padding: 10px 12px;
+  }
+  .shop-emoji {
+    font-size: 1.4rem;
+  }
+  .ad-countdown {
+    font-size: 3rem;
   }
 }

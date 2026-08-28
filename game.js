@@ -95,6 +95,21 @@ function updateGemsHUD() {
   if (elShopGems) elShopGems.textContent = gems;
 }
 
+function updateShopUI() {
+  document.querySelectorAll(".shop-item").forEach((el) => {
+    const id = el.dataset.item;
+    const owned = hasUpgrade(id);
+    const costEl = el.querySelector(".shop-cost");
+    if (owned) {
+      el.classList.add("owned");
+      if (costEl) costEl.textContent = "✔ ¡Comprado!";
+    } else {
+      el.classList.remove("owned");
+      if (costEl && SHOP_COST[id]) costEl.textContent = SHOP_COST[id] + " 💎";
+    }
+  });
+}
+
 function hasUpgrade(id) {
   return !!upgrades[id];
 }
@@ -625,6 +640,137 @@ btnSound.addEventListener("click", () => {
   paintSoundBtn();
 });
 paintSoundBtn();
+
+// --- TIENDA / VIP / ANUNCIOS ---
+const SHOP_COST = {
+  "extra-life": 3,
+  "slow-net": 5,
+  "gold-skin": 10,
+  "time-attack": 10
+};
+
+const btnOpenShop = document.getElementById("btn-open-shop");
+const btnShop = document.getElementById("btn-shop");
+const btnShopClose = document.getElementById("btn-shop-close");
+const btnWatchAd = document.getElementById("btn-watch-ad");
+const btnVip = document.getElementById("btn-vip");
+const btnVipBuy = document.getElementById("btn-vip-buy");
+const btnVipClose = document.getElementById("btn-vip-close");
+const elAdCountdown = document.getElementById("ad-countdown");
+const elVipDemoMsg = document.getElementById("vip-demo-msg");
+
+function openShop() {
+  Sound.ensure();
+  if (state === "playing") pauseGame();
+  elShopGems.textContent = loadGems();
+  updateGemsHUD();
+  updateShopUI();
+  screenShop.classList.remove("hidden");
+}
+
+function closeShop() {
+  screenShop.classList.add("hidden");
+}
+
+function shopShake(el) {
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+  setTimeout(() => el.classList.remove("shake"), 450);
+}
+
+function shopFeedback(btn, msg) {
+  shopShake(btn);
+  const costEl = btn.querySelector(".shop-cost");
+  if (costEl) costEl.textContent = msg;
+  setTimeout(updateShopUI, 1000);
+}
+
+function buyShopItem(btn) {
+  const id = btn.dataset.item;
+  const cost = SHOP_COST[id];
+  if (cost == null) return;
+  if (hasUpgrade(id)) {
+    Sound.ensure();
+    shopFeedback(btn, "¡Ya la tenés! ✔");
+    return;
+  }
+  if (buyUpgrade(id, cost)) {
+    Sound.purchase();
+    elShopGems.textContent = loadGems();
+    updateGemsHUD();
+    closeShop();
+    if (id === "time-attack") updateTimeAttackButton();
+  } else {
+    Sound.error();
+    shopFeedback(btn, "¡No te alcanzan las gemas!");
+  }
+}
+
+function paintVipButton() {
+  if (vip) {
+    btnVip.textContent = "👑 ¡Ya sos VIP! ✨";
+    btnVip.classList.add("vip-active");
+  } else {
+    btnVip.textContent = "🔒 VIP — Sin anuncios + gemas x2 + skin legendaria + Contrarreloj";
+    btnVip.classList.remove("vip-active");
+  }
+}
+
+function startAdCountdown() {
+  screenAd.classList.remove("hidden");
+  elAdCountdown.textContent = "5";
+  let n = 5;
+  const iv = setInterval(() => {
+    n--;
+    elAdCountdown.textContent = String(Math.max(0, n));
+    if (n <= 0) {
+      clearInterval(iv);
+      addGems(3);
+      Sound.gemGet();
+      screenAd.classList.add("hidden");
+      openShop();
+    }
+  }, 1000);
+}
+
+btnOpenShop.addEventListener("click", openShop);
+btnShop.addEventListener("click", openShop);
+btnShopClose.addEventListener("click", closeShop);
+document.querySelectorAll(".shop-item").forEach((btn) => {
+  btn.addEventListener("click", () => buyShopItem(btn));
+});
+
+btnWatchAd.addEventListener("click", () => {
+  Sound.ensure();
+  startAdCountdown();
+});
+
+btnVip.addEventListener("click", () => {
+  Sound.ensure();
+  screenVip.classList.remove("hidden");
+});
+
+btnVipBuy.addEventListener("click", () => {
+  Sound.ensure();
+  vip = true;
+  saveVip();
+  Sound.purchase();
+  elVipDemoMsg.classList.remove("hidden");
+  paintVipButton();
+  screenVip.classList.add("hidden");
+  updateTimeAttackButton();
+  updateShopUI();
+  updateGemsHUD();
+});
+
+btnVipClose.addEventListener("click", () => {
+  screenVip.classList.add("hidden");
+});
+
+paintVipButton();
+updateShopUI();
+updateGemsHUD();
 
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && state === "playing") pauseGame();

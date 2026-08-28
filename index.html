@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4ecdc4">
+  <meta name="description" content="Frutas Mágicas: juego arcade HTML5 para niños. Atrapa frutas, esquiva bombas ¡y suma puntos! Sin dependencias, gratis en GitHub Pages.">
+  <title>Frutas Mágicas 🍎 — Juego Arcade para Niños</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%8E%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+
+    <header class="hud">
+      <div class="hud-block">
+        <span class="hud-label">Puntos</span>
+        <span class="hud-value" id="score">0</span>
+      </div>
+      <div class="hud-block hud-target">
+        <span class="hud-label">Objetivo</span>
+        <span class="hud-value" id="target">🎯</span>
+      </div>
+      <div class="hud-block">
+        <span class="hud-label">Nivel</span>
+        <span class="hud-value" id="level">1</span>
+      </div>
+      <div class="hud-block">
+        <span class="hud-label">Vidas</span>
+        <span class="hud-value" id="lives">❤️❤️❤️</span>
+      </div>
+      <div class="hud-btns">
+        <button class="btn-icon" id="btn-sound" aria-label="Activar o silenciar sonido">🔊</button>
+        <button class="btn-icon" id="btn-pause" aria-label="Pausar">⏸️</button>
+      </div>
+    </header>
+
+    <main id="game-wrap">
+      <canvas id="game"></canvas>
+
+      <div class="overlay" id="screen-start">
+        <h1>🍎 Frutas Mágicas 🍎</h1>
+        <p class="tagline">¡Atrapa las frutas en tu cesta y no dejes que caigan!</p>
+        <ul class="rules">
+          <li>🍎 +10 · 🍌 +15 · 🍒 +20 · 🍇 +25</li>
+          <li>⭐ Estrella +50 ★ ¡bonus!</li>
+          <li>💣 Bomba = ¡pierdes una vida!</li>
+          <li>🎯 Captura el objetivo del nivel: ¡puntos x2!</li>
+          <li>👆 Mueve con el dedo o con las flechas ◀ ▶</li>
+        </ul>
+        <button class="btn-play" id="btn-start">▶ ¡Jugar!</button>
+        <p class="best" id="best-start"></p>
+      </div>
+
+      <div class="overlay hidden" id="screen-pause">
+        <h2>⏸️ Pausa</h2>
+        <button class="btn-play" id="btn-resume">▶ Continuar</button>
+        <button class="btn-play btn-ghost" id="btn-pause-home">🏠 Menú</button>
+      </div>
+
+      <div class="overlay hidden" id="screen-over">
+        <h2>🎉 ¡Fin de la partida!</h2>
+        <p class="final-score" id="final-score"></p>
+        <p class="best" id="best-over"></p>
+        <button class="btn-play" id="btn-restart">🔄 Jugar de nuevo</button>
+        <button class="btn-play btn-ghost" id="btn-over-home">🏠 Menú</button>
+      </div>
+
+      <div class="banner hidden" id="banner-level"></div>
+    </main>
+
+    <footer class="footer">
+      <!-- ============================================================ -->
+      <!-- TODO_ADSENSE_AQUI: espacio de publicidad (footer / entre niveles) -->
+      <!-- 1) Reemplaza ca-pub-XXXX por tu Google Publisher ID y descomenta: -->
+      <!--
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
+           crossorigin="anonymous"></script>
+      -->
+      <!-- 2) Sustituye el contenido de #ad-slot por tu anuncio, por ejemplo: -->
+      <!--
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-XXXX"
+           data-ad-slot="1234567890"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+      -->
+      <!-- ============================================================ -->
+      <div class="ad-slot" id="ad-slot">
+        <span class="ad-placeholder">PUBLICIDAD · AD SPACE</span>
+        <span class="ad-badge" id="ad-tag">TODO_ADSENSE_AQUI</span>
+      </div>
+      <p class="credits">Frutas Mágicas © 2026 · HTML5 puro, sin dependencias · Listo para GitHub Pages</p>
+    </footer>
+
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

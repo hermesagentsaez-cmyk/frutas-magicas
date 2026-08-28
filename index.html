@@ -8,8 +8,7 @@
   <title>Frutas Mágicas 🍎 — Juego Arcade para Niños</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%8E%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8394580566528663"></script>
-  </head>
+</head>
 <body>
   <div class="page">
 
@@ -17,6 +16,10 @@
       <div class="hud-block">
         <span class="hud-label">Puntos</span>
         <span class="hud-value" id="score">0</span>
+      </div>
+      <div class="hud-block hud-gems">
+        <span class="hud-label">Gemas</span>
+        <span class="hud-value" id="gems">💎 0</span>
       </div>
       <div class="hud-block hud-target">
         <span class="hud-label">Objetivo</span>
@@ -30,9 +33,14 @@
         <span class="hud-label">Vidas</span>
         <span class="hud-value" id="lives">❤️❤️❤️</span>
       </div>
+      <div class="hud-block hud-ta" id="time-attack-timer" style="display:none">
+        <span class="hud-label">⏱️ Tiempo</span>
+        <span class="hud-value" id="time-attack-timer-value">60</span>
+      </div>
       <div class="hud-btns">
         <button class="btn-icon" id="btn-sound" aria-label="Activar o silenciar sonido">🔊</button>
         <button class="btn-icon" id="btn-pause" aria-label="Pausar">⏸️</button>
+        <button class="btn-icon" id="btn-shop" aria-label="Tienda de mejoras">🛒</button>
       </div>
     </header>
 
@@ -50,6 +58,8 @@
           <li>👆 Mueve con el dedo o con las flechas ◀ ▶</li>
         </ul>
         <button class="btn-play" id="btn-start">▶ ¡Jugar!</button>
+        <button class="btn-play btn-ghost" id="btn-open-shop">🛒 Tienda</button>
+        <button class="btn-play btn-ghost" id="btn-time-attack" style="display:none">⏱️ Contrarreloj</button>
         <p class="best" id="best-start"></p>
       </div>
 
@@ -63,8 +73,89 @@
         <h2>🎉 ¡Fin de la partida!</h2>
         <p class="final-score" id="final-score"></p>
         <p class="best" id="best-over"></p>
+        <p class="gem-reward" id="gem-reward-over"></p>
         <button class="btn-play" id="btn-restart">🔄 Jugar de nuevo</button>
         <button class="btn-play btn-ghost" id="btn-over-home">🏠 Menú</button>
+      </div>
+
+      <div class="overlay hidden" id="screen-shop">
+        <h2>🛒 Tienda de Gemas</h2>
+        <p class="tagline">Gastá tus gemas en mejoras copadas</p>
+        <div class="gem-display">💎 <span id="shop-gems">0</span></div>
+        <div class="shop-grid">
+          <button class="shop-item" data-item="extra-life" id="shop-extra-life">
+            <span class="shop-emoji">❤️</span>
+            <span class="shop-name">Corazón extra</span>
+            <span class="shop-cost">3 💎</span>
+            <span class="shop-desc">+1 vida al empezar</span>
+          </button>
+          <button class="shop-item" data-item="slow-net" id="shop-slow-net">
+            <span class="shop-emoji">🕸️</span>
+            <span class="shop-name">Red lenta</span>
+            <span class="shop-cost">5 💎</span>
+            <span class="shop-desc">Frutas caen más lento</span>
+          </button>
+          <button class="shop-item" data-item="gold-skin" id="shop-gold-skin">
+            <span class="shop-emoji">✨</span>
+            <span class="shop-name">Skin dorada</span>
+            <span class="shop-cost">10 💎</span>
+            <span class="shop-desc">Cesta brillante</span>
+          </button>
+          <button class="shop-item" data-item="time-attack" id="shop-time-attack">
+            <span class="shop-emoji">⏱️</span>
+            <span class="shop-name">Modo Contrarreloj</span>
+            <span class="shop-cost">10 💎</span>
+            <span class="shop-desc">60 seg de furia</span>
+          </button>
+        </div>
+        <div class="shop-divider"></div>
+        <button class="btn-play btn-ad" id="btn-watch-ad">📺 Ver anuncio +3 💎</button>
+        <div class="shop-divider"></div>
+        <button class="btn-play btn-vip" id="btn-vip">🔒 VIP — Sin anuncios + gemas x2 + skin legendaria + Contrarreloj</button>
+        <button class="btn-play btn-ghost" id="btn-shop-close">✕ Cerrar</button>
+      </div>
+
+      <div class="overlay hidden" id="screen-ad">
+        <h2>📺 ANUNCIO</h2>
+        <div class="ad-countdown" id="ad-countdown">5</div>
+        <p class="tagline">Volvé al juego en un toque...</p>
+      </div>
+
+      <div class="overlay hidden" id="screen-vip">
+        <h2>🔒 ¡Convertite en VIP!</h2>
+        <p class="tagline">Desbloqueá todo lo bueno</p>
+        <div class="vip-perks">
+          <div class="vip-perk">🚫 Sin anuncios nunca más</div>
+          <div class="vip-perk">💎 Gemas x2 en cada partida</div>
+          <div class="vip-perk">👑 Skin legendaria exclusiva</div>
+          <div class="vip-perk">⏱️ Modo Contrarreloj gratis</div>
+        </div>
+        <div class="vip-price">$4.99 USD</div>
+        <p class="vip-pay-placeholder" id="vip-pay-placeholder">Pago protegido — MercadoPago/tarjeta/cripto según región</p>
+        <button class="btn-play" id="btn-vip-buy">💳 Comprar ahora (Demo)</button>
+        <p class="vip-demo-msg" id="vip-demo-msg">Modo demo: la integración de pago se conecta después</p>
+        <button class="btn-play btn-ghost" id="btn-vip-close">✕ Cerrar</button>
+      </div>
+
+      <div class="overlay hidden" id="screen-timeattack">
+        <h2>⏱️ Modo Contrarreloj</h2>
+        <p class="tagline">¡Atrapá la mayor cantidad de frutas en 60 seg!</p>
+        <div class="ta-stats">
+          <div class="ta-stat">⏱️ <span id="ta-timer">60</span>s</div>
+          <div class="ta-stat">🍎 <span id="ta-caught">0</span></div>
+          <div class="ta-stat">💎 <span id="ta-gems">0</span></div>
+        </div>
+        <button class="btn-play" id="btn-ta-start">▶ ¡Empezar!</button>
+        <button class="btn-play btn-ghost" id="btn-ta-close">✕ Volver</button>
+      </div>
+
+      <div class="overlay hidden" id="screen-ta-over">
+        <h2>⏱️ ¡Tiempo!</h2>
+        <p class="final-score" id="ta-final-score"></p>
+        <p class="gem-reward" id="ta-gem-reward"></p>
+        <p class="best" id="ta-record"></p>
+        <button class="btn-play" id="btn-ta-restart">🔄 Otra vez</button>
+        <button class="btn-play btn-ghost" id="btn-ta-home">🏠 Menú</button>
       </div>
 
       <div class="banner hidden" id="banner-level"></div>
@@ -74,10 +165,8 @@
       <!-- ============================================================ -->
       <!-- TODO_ADSENSE_AQUI: espacio de publicidad (footer / entre niveles) -->
       <!-- 1) Reemplaza ca-pub-XXXX por tu Google Publisher ID y descomenta: -->
-      <!--
-      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8394580566528663"
            crossorigin="anonymous"></script>
-      -->
       <!-- 2) Sustituye el contenido de #ad-slot por tu anuncio, por ejemplo: -->
       <!--
       <ins class="adsbygoogle"

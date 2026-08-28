@@ -18,10 +18,27 @@ const elBestStart = document.getElementById("best-start");
 const elBestOver = document.getElementById("best-over");
 const elFinalScore = document.getElementById("final-score");
 const elBanner = document.getElementById("banner-level");
+const elGems = document.getElementById("gems");
+const elShopGems = document.getElementById("shop-gems");
+const elGemRewardOver = document.getElementById("gem-reward-over");
+const elTaTimer = document.getElementById("ta-timer");
+const elTaCaught = document.getElementById("ta-caught");
+const elTaGems = document.getElementById("ta-gems");
+const elTaFinalScore = document.getElementById("ta-final-score");
+const elTaGemReward = document.getElementById("ta-gem-reward");
+const elTaRecord = document.getElementById("ta-record");
+const elTaStartTimer = document.getElementById("time-attack-timer");
+const elTaStartTimerValue = document.getElementById("time-attack-timer-value");
+const btnTimeAttack = document.getElementById("btn-time-attack");
 
 const screenStart = document.getElementById("screen-start");
 const screenPause = document.getElementById("screen-pause");
 const screenOver = document.getElementById("screen-over");
+const screenShop = document.getElementById("screen-shop");
+const screenAd = document.getElementById("screen-ad");
+const screenVip = document.getElementById("screen-vip");
+const screenTimeAttack = document.getElementById("screen-timeattack");
+const screenTaOver = document.getElementById("screen-ta-over");
 
 const FRUITS = [
   { emoji: "🍎", size: 40, points: 10, color: "#ff6b6b", weight: 24 },
@@ -29,31 +46,88 @@ const FRUITS = [
   { emoji: "🍒", size: 38, points: 20, color: "#e84393", weight: 18 },
   { emoji: "🍇", size: 44, points: 25, color: "#8854d0", weight: 14 }
 ];
-const STAR = { emoji: "⭐", size: 38, points: 50, color: "#ffd32a", weight: 6 };
+const STAR = { emoji: "⭐", size: 38, points: 50, color: "#ffd32a", weight: 6, isStar: true };
 const BOMB = { emoji: "💣", size: 42, isBomb: true };
+
+// --- ECONOMÍA / LOCALSTORAGE ---
+let gems = loadGems();
+let upgrades = loadUpgrades();
+let vip = loadVip();
+
+function loadGems() {
+  try { return parseInt(localStorage.getItem("fm-gems") || "0", 10) || 0; } catch (e) { return 0; }
+}
+function saveGems() {
+  try { localStorage.setItem("fm-gems", String(gems)); } catch (e) {}
+}
+function loadUpgrades() {
+  try { return JSON.parse(localStorage.getItem("fm-upgrades") || "{}"); } catch (e) { return {}; }
+}
+function saveUpgrades() {
+  try { localStorage.setItem("fm-upgrades", JSON.stringify(upgrades)); } catch (e) {}
+}
+function loadVip() {
+  try { return localStorage.getItem("fm-vip") === "1"; } catch (e) { return false; }
+}
+function saveVip() {
+  try { localStorage.setItem("fm-vip", vip ? "1" : "0"); } catch (e) {}
+}
+
+function addGems(amount, multiplier = 1) {
+  const mult = vip ? 2 : multiplier;
+  gems += Math.round(amount * mult);
+  saveGems();
+  updateGemsHUD();
+}
+
+function spendGems(cost) {
+  if (gems >= cost) {
+    gems -= cost;
+    saveGems();
+    updateGemsHUD();
+    return true;
+  }
+  return false;
+}
+
+function updateGemsHUD() {
+  if (elGems) elGems.textContent = "💎 " + gems;
+  if (elShopGems) elShopGems.textContent = gems;
+}
+
+function hasUpgrade(id) {
+  return !!upgrades[id];
+}
+
+function buyUpgrade(id, cost) {
+  if (spendGems(cost)) {
+    upgrades[id] = true;
+    saveUpgrades();
+    updateShopUI();
+    return true;
+  }
+  return false;
+}
 
 let best = loadBest();
 function loadBest() {
-  try {
-    return parseInt(localStorage.getItem("fm-best") || "0", 10) || 0;
-  } catch (e) {
-    return 0;
-  }
+  try { return parseInt(localStorage.getItem("fm-best") || "0", 10) || 0; } catch (e) { return 0; }
 }
 function saveBest() {
-  try {
-    localStorage.setItem("fm-best", String(best));
-  } catch (e) {}
+  try { localStorage.setItem("fm-best", String(best)); } catch (e) {}
+}
+
+function loadTaBest() {
+  try { return parseInt(localStorage.getItem("bestTimeAttack") || "0", 10) || 0; } catch (e) { return 0; }
+}
+function saveTaBest() {
+  try { localStorage.setItem("bestTimeAttack", String(taBest)); } catch (e) {}
 }
 
 const Sound = {
   ctx: null,
   muted: (function () {
-    try {
-      return localStorage.getItem("fm-muted") === "1";
-    } catch (e) {
-      return false;
-    }
+    try { return localStorage.getItem("fm-muted") === "1"; } catch (e) { return false; }
   })(),
   ensure() {
     if (!this.ctx) {
@@ -117,17 +191,34 @@ const Sound = {
   gameOver() {
     [392, 330, 262, 196].forEach((f, i) => this.tone(f, 0.3, "sine", 0.2, i * 0.17));
   },
+  gemGet() {
+    this.tone(880, 0.08, "triangle", 0.2);
+    this.tone(1100, 0.08, "triangle", 0.18, 0.07);
+    this.tone(1320, 0.1, "triangle", 0.16, 0.14);
+  },
+  purchase() {
+    this.tone(523, 0.1, "sine", 0.2);
+    this.tone(659, 0.1, "sine", 0.18, 0.08);
+    this.tone(784, 0.15, "sine", 0.16, 0.16);
+  },
+  error() {
+    this.tone(200, 0.2, "sawtooth", 0.3);
+  },
   toggle() {
     this.muted = !this.muted;
-    try {
-      localStorage.setItem("fm-muted", this.muted ? "1" : "0");
-    } catch (e) {}
+    try { localStorage.setItem("fm-muted", this.muted ? "1" : "0"); } catch (e) {}
     return this.muted;
   }
 };
 
 let state = "start";
+let gameMode = "classic";
 let score = 0;
+let taTimeLeft = 60;
+let taCaught = 0;
+let taBest = loadTaBest();
+let taGemReward = 0;
+let lastTaDisplayed = 60;
 let lives = 3;
 let level = 1;
 let combo = 0;
@@ -177,7 +268,7 @@ function pickWeighted() {
 function spawnFruit() {
   let kind;
   const bombChance = Math.min(0.26, 0.05 + level * 0.03);
-  if (Math.random() < bombChance) {
+  if (gameMode !== "timeattack" && Math.random() < bombChance) {
     kind = BOMB;
   } else {
     kind = pickWeighted();
@@ -234,6 +325,39 @@ function setHud() {
   elLives.textContent = hearts;
 }
 
+function updateTaHud() {
+  if (elTaTimer) elTaTimer.textContent = Math.max(0, Math.ceil(taTimeLeft));
+  if (elTaCaught) elTaCaught.textContent = taCaught;
+  if (elTaGems) elTaGems.textContent = Math.floor(taCaught / 10);
+  if (elTaStartTimerValue) elTaStartTimerValue.textContent = Math.max(0, Math.ceil(taTimeLeft));
+  elScore.textContent = score;
+}
+
+function resetTimeAttack() {
+  gameMode = "timeattack";
+  score = 0;
+  taTimeLeft = 60;
+  taCaught = 0;
+  taGemReward = 0;
+  lives = 3;
+  level = 1;
+  combo = 0;
+  nextLevelAt = 200;
+  fruits = [];
+  particles = [];
+  floaters = [];
+  spawnTimer = 0.5;
+  basket.x = GAME_W / 2;
+  basket.glow = 0;
+  shakeTime = 0;
+  flash = 0;
+  bannerTimer = 0;
+  input.dir = 0;
+  input.targetX = null;
+  setTarget();
+  updateTaHud();
+}
+
 function addFloater(x, y, text, color, big) {
   floaters.push({ x, y, text, color, life: 1, big: !!big });
 }
@@ -268,6 +392,19 @@ function catchItem(f) {
     Sound.bomb();
     if (lives > 0) addFloater(f.x, f.y - 20, "¡OUCH! -1 vida", "#ff7675", true);
     else gameOver();
+  } else if (gameMode === "timeattack") {
+    combo++;
+    taCaught++;
+    score = taCaught;
+    addFloater(f.x, f.y - 20, "+1", "#6ef3a8", combo >= 5);
+    burst(f.x, f.y, f.kind.color, 10, 140);
+    if (f.kind.isStar) {
+      Sound.star();
+      burst(f.x, f.y, "#ffe66d", 24, 200);
+    } else {
+      Sound.catch_(combo);
+    }
+    updateTaHud();
   } else {
     combo++;
     const isTarget = target && f.kind.emoji === target.emoji;
@@ -297,6 +434,11 @@ function catchItem(f) {
 }
 
 function missItem(f) {
+  if (gameMode === "timeattack") {
+    combo = 0;
+    setHud();
+    return;
+  }
   combo = 0;
   Sound.miss_();
   setHud();
@@ -319,6 +461,10 @@ function levelUp() {
 }
 
 function gameOver() {
+  if (gameMode === "timeattack") {
+    timeAttackGameOver();
+    return;
+  }
   state = "gameover";
   shakeTime = 0.5;
   shakeMag = 12;
@@ -372,11 +518,50 @@ window.addEventListener("keydown", (e) => {
 
 function startGame() {
   Sound.ensure();
+  gameMode = "classic";
+  if (elTaStartTimer) elTaStartTimer.style.display = "none";
   resetGame();
   screenStart.classList.add("hidden");
   screenPause.classList.add("hidden");
   screenOver.classList.add("hidden");
+  screenTimeAttack.classList.add("hidden");
+  screenTaOver.classList.add("hidden");
   state = "playing";
+}
+
+function startTimeAttack() {
+  Sound.ensure();
+  resetTimeAttack();
+  if (elTaStartTimer) elTaStartTimer.style.display = "";
+  screenStart.classList.add("hidden");
+  screenPause.classList.add("hidden");
+  screenOver.classList.add("hidden");
+  screenTimeAttack.classList.add("hidden");
+  screenTaOver.classList.add("hidden");
+  state = "playing";
+}
+
+function timeAttackGameOver() {
+  state = "gameover";
+  taGemReward = Math.floor(taCaught / 10);
+  if (taGemReward > 0) {
+    addGems(taGemReward);
+    Sound.gemGet();
+  }
+  let newRecord = false;
+  if (taCaught > taBest) {
+    taBest = taCaught;
+    saveTaBest();
+    newRecord = true;
+  }
+  Sound.gameOver();
+  if (elTaStartTimer) elTaStartTimer.style.display = "none";
+  elTaFinalScore.textContent = "Frutas atrapadas: " + taCaught;
+  elTaGemReward.textContent = "+" + taGemReward + " 💎";
+  elTaRecord.textContent = newRecord
+    ? "🏆 ¡Nuevo récord! " + taBest
+    : (taBest > 0 ? "Récord: " + taBest : "");
+  screenTaOver.classList.remove("hidden");
 }
 
 function pauseGame() {
@@ -395,7 +580,11 @@ function toMenu() {
   state = "start";
   screenPause.classList.add("hidden");
   screenOver.classList.add("hidden");
+  screenTimeAttack.classList.add("hidden");
+  screenTaOver.classList.add("hidden");
+  if (elTaStartTimer) elTaStartTimer.style.display = "none";
   elBestStart.textContent = best > 0 ? "🏆 Récord: " + best : "";
+  updateTimeAttackButton();
   screenStart.classList.remove("hidden");
 }
 
@@ -405,6 +594,26 @@ document.getElementById("btn-resume").addEventListener("click", resumeGame);
 document.getElementById("btn-pause").addEventListener("click", pauseGame);
 document.getElementById("btn-pause-home").addEventListener("click", toMenu);
 document.getElementById("btn-over-home").addEventListener("click", toMenu);
+
+function updateTimeAttackButton() {
+  if (!btnTimeAttack) return;
+  const unlocked = hasUpgrade("time-attack") || vip;
+  btnTimeAttack.style.display = unlocked ? "" : "none";
+}
+updateTimeAttackButton();
+
+btnTimeAttack.addEventListener("click", () => {
+  Sound.ensure();
+  resetTimeAttack();
+  updateTaHud();
+  screenStart.classList.add("hidden");
+  screenTaOver.classList.add("hidden");
+  screenTimeAttack.classList.remove("hidden");
+});
+document.getElementById("btn-ta-start").addEventListener("click", startTimeAttack);
+document.getElementById("btn-ta-close").addEventListener("click", toMenu);
+document.getElementById("btn-ta-restart").addEventListener("click", startTimeAttack);
+document.getElementById("btn-ta-home").addEventListener("click", toMenu);
 
 const btnSound = document.getElementById("btn-sound");
 function paintSoundBtn() {
@@ -424,6 +633,19 @@ document.addEventListener("visibilitychange", () => {
 function update(dt) {
   time += dt;
   if (state !== "playing") return;
+
+  if (gameMode === "timeattack") {
+    taTimeLeft -= dt;
+    if (taTimeLeft <= 0) {
+      taTimeLeft = 0;
+      timeAttackGameOver();
+      return;
+    }
+    if (elTaStartTimerValue && Math.ceil(taTimeLeft) !== lastTaDisplayed) {
+      lastTaDisplayed = Math.ceil(taTimeLeft);
+      updateTaHud();
+    }
+  }
 
   if (input.targetX !== null) {
     basket.x += (input.targetX - basket.x) * Math.min(1, 9 * dt);

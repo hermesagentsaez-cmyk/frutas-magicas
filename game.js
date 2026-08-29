@@ -746,23 +746,48 @@ btnWatchAd.addEventListener("click", () => {
   startAdCountdown();
 });
 
+const PAYMENT_WORKER_URL = "https://pagos-mauro.maurojuegos.workers.dev";
+
+// Inicia el flujo de compra VIP con MercadoPago Checkout Pro.
+async function startVipPurchase() {
+  Sound.ensure();
+
+  const btn = btnVipBuy;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Redirigiendo a MercadoPago...";
+  elVipDemoMsg.hidden = true;
+
+  try {
+    const resp = await fetch(`${PAYMENT_WORKER_URL}/create-preference`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ producto: "vip" }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok || !data.init_point) {
+      throw new Error("No se pudo crear la preferencia");
+    }
+
+    // Redirige al checkout de MercadoPago.
+    window.open(data.init_point, "_blank", "noopener");
+  } catch (err) {
+    // Solo si falla el pago se entra en modo cartel (sin activar el VIP).
+    elVipDemoMsg.textContent = "Pago no disponible ahora, intentá en un momento";
+    elVipDemoMsg.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
 btnVip.addEventListener("click", () => {
   Sound.ensure();
   screenVip.classList.remove("hidden");
 });
 
-btnVipBuy.addEventListener("click", () => {
-  Sound.ensure();
-  vip = true;
-  saveVip();
-  Sound.purchase();
-  elVipDemoMsg.classList.remove("hidden");
-  paintVipButton();
-  screenVip.classList.add("hidden");
-  updateTimeAttackButton();
-  updateShopUI();
-  updateGemsHUD();
-});
+btnVipBuy.addEventListener("click", startVipPurchase);
 
 btnVipClose.addEventListener("click", () => {
   screenVip.classList.add("hidden");
@@ -771,6 +796,21 @@ btnVipClose.addEventListener("click", () => {
 paintVipButton();
 updateShopUI();
 updateGemsHUD();
+
+// Si el usuario vuelve de MercadoPago con pago aprobado, activa el VIP.
+(function checkPaymentReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("pago") === "ok") {
+      vip = true;
+      saveVip();
+      paintVipButton();
+      updateGemsHUD();
+      // Limpiar la URL para no reactivar en cada recarga.
+      history.replaceState(null, "", window.location.pathname);
+    }
+  } catch (e) { /* silencioso */ }
+})();
 
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && state === "playing") pauseGame();
